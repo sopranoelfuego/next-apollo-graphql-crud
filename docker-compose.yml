@@ -14,4 +14,4 @@ services:
       MYSQL_DATABASE: TaskManagement
 
     ports:
-      - 127.0.0.0:3307:3306
+      - 3307:3306

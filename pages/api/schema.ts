@@ -1,9 +1,9 @@
 import { IResolvers } from '@graphql-tools/utils'
-import { gql } from 'apollo-server-core'
-import { ApolloError } from 'apollo-server-micro'
+import { ApolloError, gql } from 'apollo-server-core'
+// import { ApolloException } from 'apollo-server-micro'
 import mysqlServer from 'serverless-mysql'
 import db from '../../lib/db'
-import mysql from 'mysql'
+import { OkPacket, MysqlError } from 'mysql'
 import { ITask, ITaskResponse } from '../../lib/types'
 
 export const typeDefs = gql`
@@ -22,19 +22,20 @@ export const typeDefs = gql`
  }
 
  input UpdateTaskInput {
-  id: Int!
+  id: Int
   title: String!
   status: TaskStatus!
  }
  type Query {
   hello: String!
-  task(id: Int): Task!
+  task(id: Int): Task
   tasks(status: TaskStatus): [Task!]
  }
  type Mutation {
   createTask(input: TaskInput!): Task
   updateTask(input: UpdateTaskInput): Task
-  deleteTask(input: Int!): Task
+  deleteTask(id: Int!): Task
+  deleteAllTask: Int!
  }
 `
 enum taskStatus {
@@ -49,45 +50,67 @@ export const resolvers: IResolvers<any, ApolloContext> = {
   hello(parents, args, context) {
    return 'welcome to our api...'
   },
-  async task(parents, args: { id: number }, context): Promise<ITask[]> {
-   const task = await db.query<ITask[]>('select * from Task where id=?', [
-    args.id,
-   ])
-   await db.end()
-   return task
+  async task(parents, args: { id: number }, context): Promise<ITask> {
+   try {
+    const task = await db.query<ITask[]>('select * from Task where id=?', [
+     args.id,
+    ])
+    await db.end()
+    return task['0']
+   } catch (error) {
+    throw error
+   }
   },
-  async tasks(
-   parents,
-   args: { status?: taskStatus },
-   context
-  ): Promise<ITask[]> {
+  async tasks(parents, args, context): Promise<ITask[]> {
    const { status } = args
-   let qry = 'select * from Task'
-   if (status) qry += ' where status=?'
-   else qry += ' order by id desc'
-   const tasks = await db.query<ITask[]>(qry, [status])
-   await db.end()
-   return tasks
+   try {
+    let qry = 'select * from Task'
+    if (status) qry += ' where status=?'
+    else qry += ' order by id desc'
+    const tasks = await db.query<ITask[]>(qry, [status])
+    await db.end()
+    return tasks
+   } catch (error) {
+    throw error
+   }
   },
  },
  Mutation: {
   async createTask(
    parent,
-   args: { title: string; status: taskStatus },
+   args: { input: { title: string; status: taskStatus } },
    context
-  ): Promise<mysql.OkPacket> {
-   const { title, status } = args
-   const result = await db.query<mysql.OkPacket>('insert into Task set ?', [
-    { title, status },
-   ])
-   console.log('task created insertedId', result.insertId)
-   return result
+  ): Promise<ITask> {
+   try {
+    const { input } = args
+    const result = await db.query<OkPacket>('insert into Task set ?', [input])
+    await db.end()
+    return {
+     id: result.insertId,
+     title: input.title,
+     status: input.status,
+    }
+   } catch (error) {
+    throw error
+   }
   },
   updateTask(parent, args, context) {
    return null
   },
-  deleteTask(parent, args, context) {
-   return null
+  async deleteTask(parent, args, context): Promise<number> {
+   try {
+    const result = await db.query<OkPacket>('delete from Task where id=?', [
+     args.input.id,
+    ])
+
+    return result.changedRows
+   } catch (error) {
+    throw error
+   }
+  },
+  async deleteAllTask(parents, args, context): Promise<number> {
+   const result = await db.query<OkPacket>('delete from Task')
+   return result.affectedRows
   },
  },
 }

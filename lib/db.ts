@@ -5,12 +5,12 @@ const db = mysql({
  config: {
   host: process.env.MYSQL_HOST,
   database: process.env.MYSQL_DATABASE,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
+  user: 'root',
+  password: process.env.MYSQL_ROOT_PASSWORD,
   port: Number(process.env.MYSQL_PORT),
  },
 })
-
+console.log('en inconsole.', process.env.MYSQL_ROOT_PASSWORD)
 export default db
 // USING APPROACH OF QUERY DATA DIRECTLY FROM DATABASE NOT USING ANY API...
 export const loadData = async (table: string, id?: number) => {
