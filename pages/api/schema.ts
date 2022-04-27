@@ -98,9 +98,10 @@ export const resolvers: IResolvers<any, ApolloContext> = {
   async updateTask(parent, args, context): Promise<ITask> {
    try {
     const { input } = args
+    console.log('input:', input)
     const result = await db.query<OkPacket>(
      'update Task set title=?,status=? where id=?',
-     [input.title, input.status, input.id]
+     [input.title, input.status.toString().trim(), input.id]
     )
     return input
    } catch (error) {
