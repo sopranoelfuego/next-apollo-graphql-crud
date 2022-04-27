@@ -9,9 +9,5 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: myrootpassword
-      MYSQL_USER: soprano
-      MYSQL_PASSWORD: soprano
-      MYSQL_DATABASE: TaskManagement
-
     ports:
       - 3307:3306

@@ -50,7 +50,7 @@ export const resolvers: IResolvers<any, ApolloContext> = {
   hello(parents, args, context) {
    return 'welcome to our api...'
   },
-  async task(parents, args: { id: number }, context): Promise<ITask> {
+  async task(parents, args, context): Promise<ITask> {
    try {
     const task = await db.query<ITask[]>('select * from Task where id=?', [
      args.id,
@@ -68,6 +68,7 @@ export const resolvers: IResolvers<any, ApolloContext> = {
     if (status) qry += ' where status=?'
     else qry += ' order by id desc'
     const tasks = await db.query<ITask[]>(qry, [status])
+    console.log('tasks here:', tasks)
     await db.end()
     return tasks
    } catch (error) {
@@ -94,8 +95,17 @@ export const resolvers: IResolvers<any, ApolloContext> = {
     throw error
    }
   },
-  updateTask(parent, args, context) {
-   return null
+  async updateTask(parent, args, context): Promise<ITask> {
+   try {
+    const { input } = args
+    const result = await db.query<OkPacket>(
+     'update Task set title=?,status=? where id=?',
+     [input.title, input.status, input.id]
+    )
+    return input
+   } catch (error) {
+    throw error
+   }
   },
   async deleteTask(parent, args, context): Promise<number> {
    try {

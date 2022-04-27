@@ -1,4 +1,4 @@
-import { ApolloServer, gql } from 'apollo-server-micro'
+import { ApolloServer } from 'apollo-server-micro'
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { typeDefs, resolvers } from './schema'
