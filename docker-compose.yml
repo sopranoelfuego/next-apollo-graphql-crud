@@ -9,9 +9,5 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: myrootpassword
-<<<<<<< HEAD
-=======
-
->>>>>>> 445eb8506c806279dd335f837e20c50a0149c8ed
     ports:
       - 3307:3306
